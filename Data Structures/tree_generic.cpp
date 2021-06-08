@@ -60,31 +60,31 @@ namespace samarth {
 					return nullptr;
 				}
 
-				void clear_subroutiene(tree_node *subtree_root){
+				void clear_subroutine(tree_node *subtree_root){
 					if(subtree_root == nullptr) return;
-					clear_subroutiene(subtree_root->next_sibling);
-					clear_subroutiene(subtree_root->last_entered_child);
+					clear_subroutine(subtree_root->next_sibling);
+					clear_subroutine(subtree_root->last_entered_child);
 					delete subtree_root;
 				}
 
-				void print_core_subroutiene(tree_node* subtree_root, std::size_t depth) const {
+				void print_core_subroutine(tree_node* subtree_root, std::size_t depth) const {
 					if(subtree_root == nullptr) return;
 					std::string padding (depth*4, ' ');
 					std::cout << padding << subtree_root->data << std::endl ;
-					print_core_subroutiene(subtree_root->last_entered_child, depth+1);
-					print_core_subroutiene(subtree_root->next_sibling, depth);
+					print_core_subroutine(subtree_root->last_entered_child, depth+1);
+					print_core_subroutine(subtree_root->next_sibling, depth);
 				}
 
 			public:
 				void print() const {
-					print_core_subroutiene(root,0);
+					print_core_subroutine(root,0);
 				}
 
 				void print(const Object &subtree_root_data) const {
 					tree_node *subtree_root { find_node(subtree_root_data, root) };
 					if(subtree_root == nullptr) return;
 					std::cout << subtree_root->data << std::endl ;
-					print_core_subroutiene(subtree_root->last_entered_child, 1);
+					print_core_subroutine(subtree_root->last_entered_child, 1);
 				}
 
 				void add_root(const Object &root_data){
@@ -100,7 +100,7 @@ namespace samarth {
 				}
 
 				void clear(){
-					clear_subroutiene(root);
+					clear_subroutine(root);
 				}
 		};
 }
