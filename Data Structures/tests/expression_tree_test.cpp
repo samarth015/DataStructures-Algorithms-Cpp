@@ -1,5 +1,4 @@
 #include <array>
-#include "randint.cpp"
 #include "../expression_tree.cpp"
 #include <iostream>
 
@@ -23,8 +22,11 @@ int main(){
 		samarth::expr_tree extr { tests[i] };
 		auto result { extr.evaluate_expression() };
 		if( result == answers[i] ){
-			std::cout << "Passed : " << tests[i] << " = " << result
-					  << "\n-- Expression Tree --" << std::endl;
+			std::cout << "Passed : " << tests[i] << " = " << result << std::endl;
+			extr.print_infix_expression();
+			extr.print_postfix_expression();
+			extr.print_prefix_expression();
+			std::cout << "-- Expression Tree --" << std::endl;
 			extr.print();
 			std::cout << std::endl;
 		}
