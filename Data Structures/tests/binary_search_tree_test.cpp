@@ -16,10 +16,12 @@ int main(){
 	std::cout << std::endl;
 
 	std::cout << "\n--- TREE --- " << std::endl;
-
 	bst.print();
 
-	std::cout << "Size : " << std::endl;
+	std::cout << "\nTree by level order" << std::endl;
+	bst.print_by_lever_order();
+
+	std::cout << "\nSize : " << std::endl;
 	std::cout << bst.size() << std::endl;
 	std::cout << "\nMin and max values :" << std::endl;
 	std::cout << bst.max() << std::endl;

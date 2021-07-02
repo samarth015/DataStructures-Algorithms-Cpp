@@ -3,6 +3,7 @@
 
 #include<utility>
 #include<tuple>      //To return 3 types in find_node_and_parent.
+#include<queue>
 #include<stdexcept>
 #include<iostream>
 #include<iomanip>
@@ -271,6 +272,26 @@ namespace samarth {
 				void print() const {
 					std::cout << std::setfill(' ') << std::setw(3);   //output formatting
 					print(root);
+				}
+
+				void print_by_lever_order() const {
+					std::queue<tree_node*> level_nodes ;
+					level_nodes.push(root);
+
+					std::size_t level{};
+					while(not level_nodes.empty()){
+						std::cout << level << " -- "; 
+						std::size_t num_of_nodes_in_current_level { level_nodes.size() };
+						for(std::size_t i{}; i < num_of_nodes_in_current_level ; i++){
+							tree_node* np { level_nodes.front() };
+							level_nodes.pop();
+							if(np->right) level_nodes.push(np->right);
+							if(np->left) level_nodes.push(np->left);
+							std::cout << np->data << " ";
+						}
+						std::cout << std::endl;
+						level++;
+					}
 				}
 		};
 }
