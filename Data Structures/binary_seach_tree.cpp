@@ -258,7 +258,9 @@ namespace samarth {
 						else if(node->right) new_child = node->right;
 						else new_child = nullptr;
 
-						if(relation == relation_to_parent::left_child)
+						if(relation == relation_to_parent::no_parent)
+							root = new_child;
+						else if(relation == relation_to_parent::left_child)
 							parent->left = new_child;
 						else
 							parent->right = new_child;
