@@ -7,10 +7,8 @@
 
 #include<utility>
 #include<tuple>      //To return 3 types in find_node_and_parent.
-#include<queue>
 #include<stdexcept>
 #include<iostream>
-#include<iomanip>
 #include<random>
 
 template<typename Comparable>
@@ -45,8 +43,6 @@ class set
 				tree_node(tree_node &&other) noexcept = delete;
 				~tree_node() = default;
 		};
-
-		//check default init
 
 	public:
 		class iterator
@@ -174,6 +170,7 @@ class set
 					--(*this);
 					return tmp;
 				}
+				template<typename> friend class set;
 		};
 
 		class const_iterator {
@@ -294,13 +291,51 @@ class set
 					return {subroot, parent, relation};
 			}
 
-		void print(tree_node* subroot, std::size_t depth = 0) const {
-			if(subroot == nullptr) return;
+		void erase(tree_node *node, tree_node *parent, relation_to_parent relation){
+			if(node->left and node->right){
+				tree_node *curr {node->left}, *prev_curr{node};
+				while(curr->right){
+					prev_curr = curr;
+					curr = curr->right;
+				}
 
-			print(subroot->right, depth + 1);
-			std::string padding (depth*3, ' ');
-			std::cout << padding << subroot->data << std::endl;
-			print(subroot->left, depth + 1);
+				node->data = std::move(curr->data);
+				if(prev_curr == node) node->left = curr->left;
+				else prev_curr->right = curr->left;
+
+				if(curr == min_node) min_node = node;
+
+				delete curr;
+			}
+			else {
+				tree_node *successor;
+
+				if(node->left) successor = node->left;
+				else if(node->right) successor = node->right;
+				else successor = nullptr;
+
+				if(relation == relation_to_parent::no_parent)
+					root = successor;
+				else if(relation == relation_to_parent::left_child)
+					parent->left = successor;
+				else
+					parent->right = successor;
+
+				if(successor) successor->parent = parent;
+
+				if(node == min_node){
+					if(min_node->right) min_node = min_node->right;
+					else min_node = parent;
+				}
+
+				if(node == max_node){
+					if(max_node->left) max_node = max_node->left;
+					else max_node = parent;
+				}
+
+				delete node;
+			}
+			Size--;
 		}
 
 		tree_node *root;
@@ -405,7 +440,7 @@ class set
 			return min_node->data;
 		}
 
-		void insert(const Comparable &data){
+		iterator insert(const Comparable &data){
 			auto [ subtree, parent, relation ] {find_node_and_parent(data, root)};
 			if(subtree == nullptr){
 				tree_node* new_node = new tree_node{data, parent};
@@ -420,12 +455,18 @@ class set
 					parent->left = new_node;
 				else 
 					parent->right = new_node;
-
 				Size++;
+
+				return { new_node, this };
+			}
+			else {
+				return { subtree, this };
 			}
 		}
 
-		void insert(Comparable &&data){
+
+
+		iterator insert(Comparable &&data){
 			auto [ subtree, parent, relation ] {find_node_and_parent(data, root)};
 			if(subtree == nullptr){
 				tree_node* new_node = new tree_node{std::move(data), parent};
@@ -440,70 +481,55 @@ class set
 					parent->left = new_node;
 				else 
 					parent->right = new_node;
-
 				Size++;
-			}
-		}
 
-		bool contains(const Comparable &data) const {
-			tree_node *node { find_node(data, root) };
-			return node != nullptr;
-		}
-
-		void erase(const Comparable &data){
-			auto [ node, parent, relation ] {find_node_and_parent(data, root)};
-
-			if(node == nullptr) return;
-
-			if(node->left and node->right){
-				tree_node *curr {node->left}, *prev_curr{node};
-				while(curr->right){
-					prev_curr = curr;
-					curr = curr->right;
-				}
-
-				node->data = std::move(curr->data);
-				if(prev_curr == node) node->left = curr->left;
-				else prev_curr->right = curr->left;
-
-				if(curr == min_node) min_node = node;
-
-				delete curr;
+				return { new_node, this };
 			}
 			else {
-				tree_node *successor;
-
-				if(node->left) successor = node->left;
-				else if(node->right) successor = node->right;
-				else successor = nullptr;
-
-				if(relation == relation_to_parent::no_parent)
-					root = successor;
-				else if(relation == relation_to_parent::left_child)
-					parent->left = successor;
-				else
-					parent->right = successor;
-
-				if(successor) successor->parent = parent;
-
-				if(node == min_node){
-					if(min_node->right) min_node = min_node->right;
-					else min_node = parent;
-				}
-
-				if(node == max_node){
-					if(max_node->left) max_node = max_node->left;
-					else max_node = parent;
-				}
-
-				delete node;
+				return { subtree, this };
 			}
-			Size--;
 		}
 
-		void print() const {
-			std::cout << std::setfill(' ') << std::setw(3);   //output formatting
-			print(root);
+		iterator find(const Comparable &data) {
+			tree_node *node { find_node(data, root) };
+			if(node != nullptr)
+				return {node, this};
+			else
+				return end();
+		}
+
+		iterator erase(const Comparable &data){
+			auto [ node, parent, relation ] {find_node_and_parent(data, root)};
+
+			if(node == nullptr) return end();
+
+			iterator it {node, this};
+			it = ++it;
+
+			erase(node, parent, relation);
+
+			return it;
+		}
+
+		iterator erase(iterator it){
+			tree_node *node {it.node};
+			tree_node *parent {node->parent};
+
+			relation_to_parent rel;
+			if(parent == nullptr) rel = relation_to_parent::no_parent;
+			else if(parent->left == node) rel = relation_to_parent::left_child;
+
+			it++;
+
+			erase(node, parent, rel);
+
+			return it;
+		}
+
+		iterator erase(iterator start, iterator finish){
+			while(start != finish){
+				start = erase(start);
+			}
 		}
 
 		iterator begin(){
@@ -523,29 +549,50 @@ class set
 
 
 int main() {
-	
+
 	set<int> st;
 	for(int i{}; i<20; i++){
 		st.insert(rand() % 100);
 	}
-	st.print();
 
 	set<int>::iterator it {st.begin()};
 
-	std::cout <<"First element : " << *it << std::endl;
+	std::cout <<"\nFirst element : " << *it << std::endl;
 	it++; it++;
 	std::cout <<"Third element : " << *it << std::endl;
 	it--;
 	std::cout <<"Second element : " << *it << std::endl;
 
-	std::cout << "Range based for loop -- " << std::endl;
+	std::cout << "\nRange based for loop -- " << std::endl;
 	for(auto n : st) std::cout << n << std::endl;
-	
-	std::cout << "Iterating in reverse -- " << std::endl;
+
+	std::cout << "\nIterating in reverse -- " << std::endl;
 
 	auto it2 {--st.end()};
 	do{
 		std::cout << *it2 << std::endl;
 		it2--;
 	}while(it2 != st.begin());
+
+	std::cout << "\nFinding 49 : " ;
+	if(*st.find(49) == 49) std::cout << "Found" << std::endl;
+	else std::cout << "Not found" << std::endl;
+	
+	std::cout << "\nFinding 1000 : " ;
+	if(*st.find(1000) == 1000) std::cout << "Found" << std::endl;
+	else std::cout << "Not found" << std::endl;
+
+	std::cout << "\nRemoving even numbers" << std::endl;
+
+	std::vector<int> evens;
+	for(auto n : st) if(n%2==0) evens.push_back(n);
+	for(auto even : evens) st.erase(even);
+	std::cout << std::endl;
+	for(auto n : st) std::cout << n << std::endl;
+
+	std::cout << "\nRemoving 35 by iterator" << std::endl;
+	st.erase(st.find(35));
+
+	std::cout << std::endl;
+	for(auto n : st) std::cout << n << std::endl;
 }
