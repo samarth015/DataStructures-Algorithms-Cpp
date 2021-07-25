@@ -25,7 +25,8 @@ namespace samarth {
 				stackarr(): stackarr(100) {}
 				stackarr( std::size_t cap ): length{}, cap{cap}, array{ new Object[cap] } {}
 
-				stackarr( const stackarr &oth ):length{oth.length}, cap{oth.cap} {
+				stackarr( const stackarr &oth ): stackarr(oth.capacity) {
+					length = oth.length;
 					for( std::size_t i{}; i < length ; i++ )
 						array[i] = oth.array[i];
 				}
@@ -45,9 +46,11 @@ namespace samarth {
 				stackarr& operator = (stackarr &&oth) noexcept{
 					if(this == &oth) return *this;
 					if(array) delete[] array;
+
 					array = oth.array;
 					length = oth.length;
 					cap = oth.cap;
+
 					oth.array = nullptr;
 					oth.length = 0;
 					oth.cap = 0;
